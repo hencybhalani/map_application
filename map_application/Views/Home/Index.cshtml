@@ -1,0 +1,207 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<html>
+<head>
+    <title>map_applications</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <script src="~/js/javascript.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+
+        body {
+            font-family: 'Nunito Sans',sans-serif;
+            padding: 0;
+            margin: 0;
+        }
+        ::-webkit-scrollbar {
+            width:3px;
+            height:3px;
+            border-left:0;
+            background:rgba(0,0,0,0.1);
+
+        }
+
+        ::-webkit-scrollbar-thumb{
+        color: aliceblue;
+        background-color: coral;
+        }
+
+        .store-list {
+            width: 25vw;
+            height:100vh;
+            overflow:auto;
+            background:whitesmoke;
+        }
+
+         .store-list .heading {
+                color: aliceblue;
+                background-color: coral;   
+                height:50px;
+               
+            }
+
+         .store-list .heading h2 {
+               padding:1rem;
+         }
+         .store-list ul.list{
+             padding:0rem;
+             list-style-type:none;
+         }
+         .store-list .shop-item{
+             margin:1rem 0;
+             border-bottom:1px solid rgba(0,0,0,0.1);
+         }
+         .store-list li:last-child .shop-item{
+             border:none;
+         }
+         .store-list .shop-item a{
+             text-decoration:none;
+             font-size:20px;
+             color:coral;
+             font-weight:700;
+         }
+         .store-list .shop-item p{
+             font-size:14px;
+             color:#404040;
+         }
+        #map{
+            width: 75vw;
+            height: 100vh;
+        }
+
+        main {
+            display: flex;
+        }
+        .leaflet-popup-content-wrapper{
+            padding:0;
+            overflow:hidden;
+        }
+
+       .leaflet-popup-content-wrapper .leaflet-popup-content {
+           margin: 0;
+        }
+
+        .leaflet-popup-content-wrapper h4{
+            padding:16px;
+            background:coral;
+            color:white;
+            font-size:16px;
+
+        }
+
+         .leaflet-popup-content-wrapper p {
+                padding: 0 16px;
+                margin-bottom:14px;
+                font-size: 14px;
+            }
+
+       .leaflet-popup-content-wrapper .leaflet-popup-content .phone-number{
+           padding:16px;
+           padding-top:0;
+       }
+
+          .leaflet-popup-content-wrapper .leaflet-popup-content .phone-number a{
+                color:coral;
+                font-size:14px;
+            }
+
+        .leaflet-marker-icon {
+            filter: hue-rotate(0deg) /* Adjust hue rotation to make the marker red */
+        }
+
+    </style>
+</head>
+<body>
+    <main>
+        <div class="store-list">
+            <div class="heading">
+                <h2>Our Outlets</h2>
+            </div>
+            <ul class="list">
+         
+            </ul>
+
+        </div>
+        <div id="map">
+        </div>
+    </main>
+</body>
+</html>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    //map intialozations
+    var map = L.map('map').setView([23.0225, 72.5714], 13);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+
+    $(document).ready(function () {
+        const ul = document.querySelector(".list");
+        storeList.forEach((shop) => {
+
+            const li = document.createElement('li');
+            const div = document.createElement('div');
+            const a = document.createElement('a');
+            const p = document.createElement('p');
+            a.addEventListener('click',()=>{
+                flystore(shop);
+            })
+            div.classList.add("shop-item");
+            a.innerText = shop.properties.name;
+            a.href = '#';
+            p.innerText = shop.properties.address;
+            div.appendChild(a);
+            div.appendChild(p);
+            li.appendChild(div);
+            ul.appendChild(li);
+        });
+    });
+    function flystore(store) {
+        map.flyTo([store.geometry.coordinates[1], store.geometry.coordinates[0]], 16, {
+            duration: 3
+        });
+    }
+    function makepopcontent(shop){
+        return `
+        <div>
+                <h4>${shop.properties.name}</h4>
+                <p>${shop.properties.address}</p>
+                <div class="phone-number">
+                     <a href="tel:${shop.properties.phone}">${shop.properties.phone}</a>
+                </div>
+
+        </div>
+        `;
+    }
+    function onEachFeature(feature, layer) {
+        layer.bindPopup(makepopcontent(feature), {closeButton:false,offset:L.point(0,-8)});
+    }
+    var myicon = L.icon({
+       // iconUrl: "/images/marker.png"/,
+        iconSizeL: [30, 40],
+        classname: 'blinking',
+        iconColor: 'green'
+    });
+   
+    const shopLayer = L.geoJSON(storeList, {
+        onEachFeature: onEachFeature,
+        pointToLayer: function(feature,latlang){
+            return L.marker(latlang,myicon);
+        }
+    });
+    shopLayer.addTo(map);
+   
+        
+    
+</script>
+
